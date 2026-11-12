@@ -50,6 +50,10 @@ optional mic button in the corner of the terminal area does the same with a clic
 - Esc cancels: nothing is pasted, the recording is dropped.
 - A recording stops itself at 10 minutes and keeps what was said.
 - Clicking the idle mic button opens the popup, same as ⌘M.
+- Another mod can open it to get the text back instead of a paste: it sets shared
+  `dictate.into` to `{ mod, at: Date.now() }` and runs `mod.open {name: "dictate"}`;
+  when you finish, the text goes to shared `composer.dictated` as `{ text, at }`
+  and nothing is pasted. A request older than 5 seconds is ignored.
 - Nothing said: "Heard nothing." Missing setup (ffmpeg, parakeet-mlx, the model)
   or a denied microphone: a one-line error saying what to run or where to allow it.
 

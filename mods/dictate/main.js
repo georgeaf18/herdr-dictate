@@ -27,6 +27,11 @@ export default class Dictate extends View {
     this.committed = ""; // locked-in text: never changes
     this.open = "";      // the sentence still being heard: can change
     this.target = focused()?.terminal ?? null;
+    // Opened by the composer's mic: hand the text back to it (shared "composer.dictated")
+    // instead of pasting into the terminal. Only a request from the last few seconds counts.
+    const into = shared("dictate.into");
+    this.into = into && Date.now() - (into.at ?? 0) < 5000 ? into.mod : null;
+    if (into) setShared("dictate.into", null);
     this.startedAt = Date.now();
     this.base = `${WORK()}/rec-${this.startedAt}`;
     // Other mods (dictate-button) see that we're dictating through shared
@@ -102,6 +107,12 @@ export default class Dictate extends View {
         const text = (await readTextFile(`${this.base}.txt`)).trim();
         this.cleanup();
         if (!text) return this.fail(cx, "Heard nothing.");
+        if (this.into === "composer") {
+          setShared("composer.dictated", { text, at: Date.now() });
+          this.release();
+          closeOverlay(props().overlay);
+          return;
+        }
         await exec("sh", ["-c", 'printf %s "$1" | pbcopy', "x", text]);
         this.release();
         closeOverlay(props().overlay);
