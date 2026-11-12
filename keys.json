@@ -1,0 +1,4 @@
+{
+  "global": { "cmd-m": "mod.open:dictate" },
+  "mod:dictate": { "cmd-m": "dictate.stop" }
+}
