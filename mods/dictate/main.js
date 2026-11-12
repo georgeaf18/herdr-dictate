@@ -8,7 +8,7 @@
 // and the text is pasted into the terminal that had focus, without
 // pressing Enter. Esc cancels. The transcript also stays on the clipboard,
 // because pasting goes through it (Herdr has no "type text without Enter" command).
-import { View, div } from "gpui-kit";
+import { View, div, svg } from "gpui-kit";
 import { h_flex, v_flex, TextView } from "gpui-base";
 import { exec, run, theme, props, closeOverlay, focused, home, appHome, nextCommand, notify, readTextFile, shared, setShared } from "herdr";
 
@@ -166,7 +166,15 @@ export default class Dictate extends View {
       .child(h_flex().gap(10).items_center()
         .child(dot)
         .child(div().flex_1().text_size(13).font_semibold().child(title))
-        .when(!!hint, (el) => el.child(div().text_size(12).text_color(t.muted).child(hint))))
+        .when(!!hint, (el) => el.child(div().text_size(12).text_color(t.muted).child(hint)))
+        // Done: same as cmd-m / Space / Enter. Primary-button colors, like dictate-button.
+        .when(this.state === "recording", (el) => el.child(div()
+          .id("dictate-done")
+          .w(28).h(24).flex_none().flex().items_center().justify_center().rounded(6)
+          .bg(t.solid).text_color(t.solid_foreground)
+          .hover((s) => s.opacity(0.85))
+          .on_click((_e, cx) => { cx.stop_propagation(); this.stop(cx); })
+          .child(svg("mods/dictate/check.svg").size(16)))))
       .child(this.state === "error"
         ? div().flex_1().min_h(0).overflow_hidden().text_size(14).text_color(t.blocked).child(this.error)
         : div().flex_1().min_h(0).overflow_hidden().text_size(14).text_color(empty ? t.dim : t.foreground)

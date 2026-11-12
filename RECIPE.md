@@ -1,8 +1,9 @@
 # Dictate
 
 Talk, and the words appear in whichever terminal you were in. Press ⌘M: a small
-popup at the top of the window starts listening and writes out what you say as
-you say it. Press ⌘M, Space or Enter again and the text is pasted into the
+popup at the bottom of the window starts listening and writes out what you say as
+you say it. Press ⌘M, Space or Enter again, or click its check
+button, and the text is pasted into the
 terminal (without pressing Enter for you). Everything runs on the Mac: Parakeet
 TDT v3 on the GPU through parakeet-mlx, with no account and no network. An
 optional mic button in the corner of the terminal area does the same with a click.
@@ -11,11 +12,13 @@ optional mic button in the corner of the terminal area does the same with a clic
 
 ## What you see
 
-- **Popup** (`mods/dictate`): 560×150, at the top of the window, 40px down.
+- **Popup** (`mods/dictate`): 560×150, at the bottom of the window, 40px up.
   Background `popover`, text `foreground`, padding 16px sides / 12px top and bottom,
   8px between rows.
-  - Top row: a 10px dot, then a 13px semibold title, then a 12px `muted` hint
-    on the right.
+  - Top row: a 10px dot, then a 13px semibold title, then a 12px `muted` hint,
+    then (only while listening) a 28×24 Done button with 6px corners in the
+    theme's primary-button colors (`solid` / `solid_foreground`) holding a 16px
+    check mark; hover dims it to 85%.
     - Listening: red dot (`blocked`) pulsing between 30% and 100% opacity every
       second; title "Listening…"; hint "Space, Enter or ⌘M to insert · Esc to cancel".
     - Finishing: `working`-colored pulsing dot; title "Finishing…"; no hint.
@@ -39,7 +42,8 @@ optional mic button in the corner of the terminal area does the same with a clic
   short pause (0.5s) every finished sentence but the last is settled and never
   changes again; the last stays italic, so if you were pausing mid-sentence it
   gets corrected once you go on. After a long pause (1.8s) it settles too.
-- ⌘M, Space or Enter in the popup, or a click on the red mic button: the popup
+- ⌘M, Space or Enter in the popup, a click on its check button, or a click on
+  the red mic button: the popup
   shows "Finishing…", the rest is settled, the popup closes, the text is pasted into
   the remembered terminal, and it stays on the clipboard. Enter is not pressed.
   If no terminal had focus, a notification says the text is on the clipboard.
@@ -51,7 +55,7 @@ optional mic button in the corner of the terminal area does the same with a clic
 
 ## Built from
 
-- `mods/dictate/mod.json`: `"place": "none"`, overlay `popup` at `top`, offset 40,
+- `mods/dictate/mod.json`: `"place": "none"`, overlay `popup` at `bottom`, offset 40,
   560×150.
 - `mods/dictate/main.js` (View): on init takes `focused().terminal`, sets shared
   `dictate.terminal`, and `exec`s `sh` running `live.py` in the background with its
@@ -61,7 +65,9 @@ optional mic button in the corner of the terminal area does the same with a clic
   "stop"). Stop = `kill -INT`, wait for the exec, read `<base>.txt`, `pbcopy` it,
   `closeOverlay(props().overlay)`, `run("pane.focus", {terminal})`,
   `run("terminal.paste")`. `close()` sends `kill -TERM` (cancel). `nextCommand()`
-  handles `stop` (bound as `dictate.stop`) and `focus`. Transcript drawn with
+  handles `stop` (bound as `dictate.stop`) and `focus`. The Done button's
+  `on_click` calls the same stop (with `cx.stop_propagation()`); its art is
+  `check.svg`, a 16×16 stroked check mark using `currentColor`. Transcript drawn with
   `TextView.markdown` from `gpui-base`, markdown characters escaped.
 - `mods/dictate/live.py`, run by parakeet-mlx's own Python
   (`~/.local/share/uv/tools/parakeet-mlx/bin/python`):
@@ -117,7 +123,7 @@ optional mic button in the corner of the terminal area does the same with a clic
   the body within about a second.
 - After a pause mid-sentence, then finishing the sentence, the italic part
   corrects itself and the earlier sentences don't change.
-- ⌘M again pastes the text at the terminal's prompt without running it, and
+- ⌘M again, or a click on the check button, pastes the text at the terminal's prompt without running it, and
   `pbpaste` prints the same text.
 - Esc closes the popup, nothing is pasted, and `pgrep -f dictate/live.py` prints
   nothing.
